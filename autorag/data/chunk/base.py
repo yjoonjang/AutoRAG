@@ -21,12 +21,11 @@ def chunker_node(func):
 	]:
 		logger.info(f"Running chunker - {func.__name__} module...")
 
-		# get texts from parsed_result
-		texts = parsed_result["texts"].tolist()
+		texts = parsed_result["contents"].tolist()
 
 		# get filenames from parsed_result when 'add_file_name' is setting
 		file_name_language = kwargs.pop("add_file_name", None)
-		metadata_list = make_metadata_list(parsed_result)
+		metadata_list = parsed_result["metadata"].tolist()
 
 		# run chunk module
 		if func.__name__ in ["llama_index_chunk", "langchain_chunk"]:
@@ -48,7 +47,7 @@ def chunker_node(func):
 
 
 def make_metadata_list(parsed_result: pd.DataFrame) -> List[Dict[str, str]]:
-	metadata_list = [{} for _ in range(len(parsed_result["texts"]))]
+	metadata_list = [{} for _ in range(len(parsed_result["metadata"]))]
 
 	def _make_metadata_pure(
 		lst: List[str], key: str, metadata_lst: List[Dict[str, str]]
@@ -56,7 +55,7 @@ def make_metadata_list(parsed_result: pd.DataFrame) -> List[Dict[str, str]]:
 		for value, metadata in zip(lst, metadata_lst):
 			metadata[key] = value
 
-	for column in ["page", "last_modified_datetime", "path"]:
+	for column in ["metadata"]:
 		if column in parsed_result.columns:
 			_make_metadata_pure(parsed_result[column].tolist(), column, metadata_list)
 	return metadata_list
